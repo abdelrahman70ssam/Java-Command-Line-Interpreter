@@ -11,6 +11,7 @@ Supported Commands
 The following commands are implemented in this CLI:
 
 echo: Takes 1 argument and prints it.
+
 pwd: Takes no arguments and prints the current path.
 cd: Supports changing the current directory to the home directory, the previous directory, or a specified path.
 ls: Lists files and directories in the current directory.
