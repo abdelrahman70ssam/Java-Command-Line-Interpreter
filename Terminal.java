@@ -14,7 +14,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 
-public class Terminal {
+class Terminal {
     private Path currentDirectory ;
     private Parser parser ;
     ArrayList<String> commandHistory ;
@@ -369,61 +369,79 @@ public class Terminal {
 
     public void wc()
     {
-            try{
-                if(parser.getArgs().size() == 0){
-                    throw new Exception("Error : should provide exact 1  argument") ;
+        try{
+            if(parser.getArgs().size() == 0){
+                throw new Exception("Error : should provide exact 1  argument") ;
+            }
+            else{
+                Path src = Paths.get(parser.getArgs().get(0));
+                Path filepath = currentDirectory.resolve(src);
+                if(!Files.isRegularFile(filepath)){
+                    throw new Exception("Not File") ;
                 }
-                else{
-                    Path src = Paths.get(parser.getArgs().get(0));
-                    Path filepath = currentDirectory.resolve(src);
-                    if(!Files.isRegularFile(filepath)){
-                        throw new Exception("Not File") ;
-                    }
-                    if(!Files.exists(filepath)){
-                        throw new Exception("Not exist in current directory") ;
-                    }
-                    int lines = 0 , characters = 0 , words = 0;
-                    BufferedReader reader = new BufferedReader(new FileReader(filepath.toFile()));
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            lines++;
-                            characters += line.length();
-                            String[] wordsArray = line.split("\\s+"); // Split by whitespace
-                            words += wordsArray.length;
-                        }
-                    System.out.println("number of lines" + lines);
-                    System.out.println("number of words" + words);
-                    System.out.println("number of charachters" + characters);
-                    System.out.println("fileName is " + filepath.toString());
+                if(!Files.exists(filepath)){
+                    throw new Exception("Not exist in current directory") ;
                 }
+                int lines = 0 , characters = 0 , words = 0;
+                BufferedReader reader = new BufferedReader(new FileReader(filepath.toFile()));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    lines++;
+                    characters += line.length();
+                    String[] wordsArray = line.split("\\s+"); // Split by whitespace
+                    words += wordsArray.length;
+                }
+                System.out.println("number of lines" + lines);
+                System.out.println("number of words" + words);
+                System.out.println("number of charachters" + characters);
+                System.out.println("fileName is " + filepath.toString());
                 commandHistory.add("wc");
             }
-            catch (Exception e){
-                System.err.println("An exception occurred: " + e.getMessage());
-            }
+
+        }
+        catch (Exception e){
+            System.err.println("An exception occurred: " + e.getMessage());
+        }
 
     }
 
     public void rmdir() {
-        String dirName = parser.getArgs().get(0);
-        if (dirName.equals("*")) {
-            File currentDir = new File(currentDirectory.toString());
-            File[] filesList = currentDir.listFiles();
-            if (filesList != null) {
-                for (File file : filesList) {
-                    if (file.isDirectory() && Objects.requireNonNull(file.list()).length == 0) {
-                        file.delete();
+        try {
+            if (parser.getArgs().size() > 1) {
+                throw new Exception("Error : should provide exact 1 argument");
+            }
+            else {
+                String dirName = parser.getArgs().get(0);
+                if (dirName.equals("*")) {
+                    File currentDir = new File(currentDirectory.toString());
+                    File[] filesList = currentDir.listFiles();
+                    if (filesList != null) {
+                        for (File file : filesList) {
+                            if (file.isDirectory() && Objects.requireNonNull(file.list()).length == 0) {
+                                file.delete();
+                                commandHistory.add("rmdir *");
+                            }
+                        }
                     }
+                } else {
+                    Path dirPath = Paths.get(dirName);
+                    File dir = new File(dirPath.toString());
+                    if(!dir.isDirectory()){
+                        throw new NotDirectoryException("Not a directory");
+                    }
+                    if(Objects.requireNonNull(dir.list()).length != 0){
+                        throw new DirectoryNotEmptyException("Not empty directory");
+                    }
+                    if (dir.isDirectory() && Objects.requireNonNull(dir.list()).length == 0) {
+                        dir.delete();
+                        commandHistory.add("rmdir");
+                    }
+
                 }
             }
-            commandHistory.add("rmdir *");
-        } else {
-            Path dirPath = Paths.get(currentDirectory.toString(), dirName);
-            File dir = new File(dirPath.toString());
-            if (dir.isDirectory() && Objects.requireNonNull(dir.list()).length == 0) {
-                dir.delete();
-            }
-            commandHistory.add("rmdir");
+        }
+        catch (Exception e){
+            System.err.println("An exception occurred: " + e.getMessage());
         }
     }
 
